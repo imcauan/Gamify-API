@@ -1,42 +1,60 @@
 import { PrismaClient } from "@prisma/client";
-import { ISignUp } from "./interfaces/SignUp";
-import { IUser } from "./interfaces/SignIn";
+import { Request, Response } from "express";
+import { hash } from "bcrypt";
 const prisma = new PrismaClient();
 
-class AuthController {
-  signIn = async (data: IUser): Promise<undefined | void> => {
+module.exports = {
+   signIn: async (req: Request, res: Response) => {
     try {
-      console.log(data.email, data.password);
-      if(!data.email && !data.password) {
-        throw Error(`Both fields are empty!`)
-      }
-      
+      const { email, password } = req.body;
       const findUser = await prisma.user.findUnique({ 
         where: {
-          email: data.email,
+          email,
+          password,
+        } 
+      });
+
+      if(!findUser) {
+        throw Error("This user doesn't exist!")
+      }
+      if(email !== findUser.email || password !== findUser.password) {
+        throw Error("Email or password are wrong. Try again.")
+      }
+      
+      return res.status(200).json(findUser);
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+   signUp: async (req: Request,  res: Response) => {
+     try {
+      const { email, username, password } = req.body;
+      const existsUserEmail = await prisma.user.findUnique({
+        where: { email: email }
+      });
+      if(existsUserEmail) {
+        return res.status(409).json({ message: "User with this email already exists."});
+      }
+      
+      const existsUsername = await prisma.user.findUnique({
+        where: { username: username }
+      });
+      if(existsUsername) {
+        return res.status(409).json({ message: "User with this username already exists."});    
+      }
+      
+      const hashedPassword = await hash(password, 10);
+      const newUser = await prisma.user.create({
+        data: {
+          email,
+          username,
+          password: hashedPassword
         }
       });
-      
-      if(!findUser) {
-        throw Error("This email doesn't exist.")
-      }
+      return res.status(200).json(newUser);
     } catch (error) {
       console.log(error);
     }
   }
-
-  signUp = async (data: ISignUp) => {
-    try {
-      const newUser = await prisma.user.create({
-        data: {
-          email: data.email,
-          username: data.username,
-          password: data.password,
-        },
-      });
-      return newUser ; 
-    } catch (error) {
-      console.log(error);
-    }
-  };
 }
