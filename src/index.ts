@@ -1,14 +1,21 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
+import cors from "cors";
 
-const prisma = new PrismaClient();
 const app = express();
 const AuthController = require("../src/app/auth/AuthController");
+const UserController = require("../src/app/user/UserController");
+const authMiddleware = require("../src/middlewares/authMiddleware");
 
 app.use(express.json());
-app.listen(3001, () => {
-    console.log("Server is listening on port 3001");
+app.use(cors({
+    origin: "http://localhost:3000"
+}))
+app.listen(3333, () => {
+    console.log("Server is listening on port 3333");
 });
 
-app.get("/auth/signin", AuthController.signIn);
-app.post("/auth/signup", AuthController.signUp);
+app.post("/user/signin", AuthController.signIn);
+app.post("/user/signup", AuthController.signUp);
+
+app.use(authMiddleware);
+app.get("/profile", authMiddleware, UserController.getProfile);
