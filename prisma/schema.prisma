@@ -16,6 +16,8 @@ model User {
   avatarUrl String?
   posts   Post[]
   communities Community[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Post {
@@ -23,6 +25,7 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   title     String   @db.VarChar(255)
+  imageUrl  String
   content   String?
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
@@ -31,6 +34,7 @@ model Community {
   id Int @id @default(autoincrement())
   bio String?
   name String @unique
-  owner User @relation(fields: [id], references: [id]) 
+  owner User @relation(fields: [id], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
