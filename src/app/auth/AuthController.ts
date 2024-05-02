@@ -1,47 +1,59 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { hash } from "bcrypt";
+import { compare, hash } from "bcrypt";
+import * as jwt  from "jsonwebtoken";
 const prisma = new PrismaClient();
 
 module.exports = {
-   signIn: async (req: Request, res: Response) => {
-    try {
+  signIn: async (req: Request, res: Response) => {
       const { email, password } = req.body;
-      const findUser = await prisma.user.findUnique({ 
+      const user = await prisma.user.findUnique({
         where: {
           email,
-          password,
-        } 
+        },
       });
-
-      if(!findUser) {
-        throw Error("This user doesn't exist!")
+      
+      if (!user) {
+        return res
+          .status(403)
+          .json({ error: "Email or password might be wrong." });
       }
-      if(email !== findUser.email || password !== findUser.password) {
-        throw Error("Email or password are wrong. Try again.")
+
+      const comparePassword = await compare(password, user.password);
+      if(comparePassword) {
+        throw Error("Email or password might be wrong.")
       }
       
-      return res.status(200).json(findUser);
-    } catch (error) {
-      console.log(error);
-    }
+      const token = jwt.sign(user, process.env.DB_PASS ?? '', { 
+        expiresIn: "1h" 
+      });
+
+      const {password: _, ...rest} = user
+      return res.json({
+        user: rest,
+        token: token
+      })
   },
 
-   signUp: async (req: Request,  res: Response) => {
-     try {
-      const { email, username, password } = req.body;
+  signUp: async (req: Request, res: Response) => {
+    try {
+      const { username, email, password } = req.body;
       const existsUserEmail = await prisma.user.findUnique({
-        where: { email: email }
+        where: { email: email },
       });
-      if(existsUserEmail) {
-        return res.status(409).json({ message: "User with this email already exists."});
+      if (existsUserEmail) {
+        res
+          .status(409)
+          .json({ error: "A user with this email already exists!" });
       }
-      
+
       const existsUsername = await prisma.user.findUnique({
-        where: { username: username }
+        where: { username: username },
       });
-      if(existsUsername) {
-        return res.status(409).json({ message: "User with this username already exists."});    
+      if (existsUsername) {
+        res
+          .status(409)
+          .json({ error: "A user with this username already exists!" });
       }
       
       const hashedPassword = await hash(password, 10);
@@ -49,12 +61,13 @@ module.exports = {
         data: {
           email,
           username,
-          password: hashedPassword
-        }
+          password: hashedPassword,
+        },
       });
-      return res.status(200).json(newUser);
+      const { password: newUserPassword, ...rest } = newUser;
+      return res.json({ user: rest });
     } catch (error) {
       console.log(error);
     }
-  }
-}
+  },
+};
