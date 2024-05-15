@@ -7,34 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  username String @unique
-  password String 
-  bio    String?
-  avatarUrl String?
-  posts   Post[]
-  communities Community[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Users {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  username     String        @unique
+  password     String
+  bio          String?
+  avatarUrl    String?
+  posts        Posts[]
+  communities  Communities[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  Likes        Likes?
+  Commentaries Commentaries?
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
-  imageUrl  String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Posts {
+  id           Int            @id @default(autoincrement())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  imageUrl     String
+  subtitle     String?
+  author       Users          @relation(fields: [authorId], references: [id])
+  authorId     Int
+  likes        Likes[]
+  commentaries Commentaries[]
 }
-model Community {
-  id Int @id @default(autoincrement())
-  bio String?
-  name String @unique
-  owner User @relation(fields: [id], references: [id])
+
+model Likes {
+  post   Posts @relation(fields: [postId], references: [id])
+  user   Users @relation(fields: [userId], references: [id])
+  postId Int   @unique
+  userId Int   @unique
+}
+
+model Commentaries {
+  post    Posts  @relation(fields: [postId], references: [id])
+  postId  Int    @unique
+  user    Users  @relation(fields: [userId], references: [id])
+  userId  Int    @unique
+  content String
+}
+
+model Communities {
+  id        Int      @id @default(autoincrement())
+  bio       String?
+  name      String   @unique
+  owner     Users    @relation(fields: [id], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
