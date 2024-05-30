@@ -4,7 +4,7 @@ import * as jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 type JwtPayload = {
-    id: number
+    id: string
 }
 
 export const authMiddleware = async (
@@ -22,7 +22,7 @@ export const authMiddleware = async (
         const token = authorization.split(' ')[1]
         const { id } = jwt.verify(token, process.env.DB_PASS ?? "") as JwtPayload
 
-        const user = await prisma.user.findUnique({where: { id }})
+        const user = await prisma.users.findUnique({where: { id }})
 
         if(!user) {
             res.status(401)

@@ -4,10 +4,11 @@ import { compare, hash } from "bcrypt";
 import * as jwt  from "jsonwebtoken";
 const prisma = new PrismaClient();
 
-module.exports = {
-  signIn: async (req: Request, res: Response) => {
+ export class AuthController {
+  async signIn (req: Request, res: Response) {
       const { email, password } = req.body;
-      const user = await prisma.user.findUnique({
+      
+      const user = await prisma.users.findUnique({
         where: {
           email,
         },
@@ -20,7 +21,7 @@ module.exports = {
       }
 
       const comparePassword = await compare(password, user.password);
-      if(comparePassword) {
+      if(!comparePassword) {
         throw Error("Email or password might be wrong.")
       }
       
@@ -28,17 +29,18 @@ module.exports = {
         expiresIn: "1h" 
       });
 
+      console.log(token)
       const {password: _, ...rest} = user
-      return res.json({
+      return res.status(201).json({
         user: rest,
         token: token
       })
-  },
+  }
 
-  signUp: async (req: Request, res: Response) => {
+  async signUp (req: Request, res: Response) {
     try {
       const { username, email, password } = req.body;
-      const existsUserEmail = await prisma.user.findUnique({
+      const existsUserEmail = await prisma.users.findUnique({
         where: { email: email },
       });
       if (existsUserEmail) {
@@ -47,7 +49,7 @@ module.exports = {
           .json({ error: "A user with this email already exists!" });
       }
 
-      const existsUsername = await prisma.user.findUnique({
+      const existsUsername = await prisma.users.findUnique({
         where: { username: username },
       });
       if (existsUsername) {
@@ -57,7 +59,7 @@ module.exports = {
       }
       
       const hashedPassword = await hash(password, 10);
-      const newUser = await prisma.user.create({
+      const newUser = await prisma.users.create({
         data: {
           email,
           username,
@@ -69,5 +71,5 @@ module.exports = {
     } catch (error) {
       console.log(error);
     }
-  },
+  }
 };
