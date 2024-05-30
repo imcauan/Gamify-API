@@ -3,20 +3,19 @@ import { Request, Response } from "express"
 
 const prisma = new PrismaClient();
 
-module.exports = {
-    create: async (req: Request, res: Response) => {
+export class CommunityController {
+    async create (req: Request, res: Response) {
         const { bio, name, owner } = req.body;
-        const checkIfExistsByName = await prisma.community.findUnique({
+        const checkIfExistsByName = await prisma.communities.findUnique({
             where: {
                 name: name
             }
         });
         if(checkIfExistsByName) {
             throw Error("Community with this name already exists!");
-
         }
         
-        const newCommunity = await prisma.community.create({
+        const newCommunity = await prisma.communities.create({
             data: {
                 name: name,
                 bio: bio,
@@ -25,11 +24,11 @@ module.exports = {
         });
         
         return res.status(200).json(newCommunity);
-    },
+    }
 
-    update: async (req: Request, res: Response) => {
-        const { id } = req.body;
-        const findCommunityById = await prisma.community.findUnique({
+    async update (req: Request, res: Response) {
+        const { id, bio, name } = req.body;
+        const findCommunityById = await prisma.communities.findFirst({
             where: {
                 id: id
             }
@@ -38,12 +37,20 @@ module.exports = {
             throw Error("Community was not found!")
         }
 
-        return res.status(200).json(findCommunityById)
-    },
+        const updateCommunity = await prisma.communities.update({
+            where: {
+                id: findCommunityById.id
+            },
+            data: {
+                name,
+                bio,
+            }
+        })
+    }
 
-    delete: async (req: Request, res: Response) => {
+    async delete (req: Request, res: Response) {
         const { id } = req.body;
-        const findCommunityById = await prisma.community.findUnique({
+        const findCommunityById = await prisma.communities.findUnique({
             where: {
                 id: id
             }
@@ -52,7 +59,7 @@ module.exports = {
             throw Error("Community was not found")
         }
         
-        const deleteCommunity = await prisma.community.delete({
+        const deleteCommunity = await prisma.communities.delete({
             where: {
                 id: id
             }
