@@ -32,7 +32,6 @@ const prisma = new PrismaClient();
       console.log(token)
       const {password: _, ...rest} = user
       return res.status(201).json({
-        user: rest,
         token: token
       })
   }

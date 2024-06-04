@@ -13,10 +13,12 @@ export const authMiddleware = async (
     next: NextFunction
 ) => {
     const { authorization } = req.headers;
-
+    
         if (!authorization) {
-            res.status(401);
-            throw Error("Unauthorized.")
+            res
+            .status(401)
+            .json({ message: "Unauthorized, no token" });
+            return;
         }
 
         const token = authorization.split(' ')[1]
@@ -25,11 +27,12 @@ export const authMiddleware = async (
         const user = await prisma.users.findUnique({where: { id }})
 
         if(!user) {
-            res.status(401)
-            throw Error("Unauthorized.")
+            res
+            .status(401)
+            .json({ message: "Unauthorized" })
         }
         
-        const { password: _, ...loggedUser } = user
+        const { ...loggedUser } = user
         req.user = loggedUser
 
         next();
