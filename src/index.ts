@@ -29,7 +29,7 @@ app.post("/user/signup", authController.signUp);
 
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")))
 
-app.get("/user/me", userController.getProfile);
+app.get("/user/me", authMiddleware, userController.getProfile);
 
 // Post CRUD
 app.post("/new/post", authMiddleware, upload.single("image"), postController.create);
@@ -40,3 +40,6 @@ app.delete("/delete/post/:id", authMiddleware, postController.delete);
 app.post("/new/community", authMiddleware, communityController.create);
 app.put("/community/:id", authMiddleware, communityController.update);
 app.delete("/delete/community/:id", authMiddleware, communityController.delete);
+
+// Get all posts
+app.get("/all/posts", authMiddleware, postController.getAll)
