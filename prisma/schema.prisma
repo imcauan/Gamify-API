@@ -14,6 +14,7 @@ model Users {
   password     String
   bio          String?
   avatarUrl    String?
+  likes Likes[]
   posts        Posts[]
   communities  Communities[]
   commentaries Commentaries[]
@@ -30,8 +31,10 @@ model Posts {
   tags        String?
   author       Users          @relation(fields: [authorId], references: [id])
   authorId     String
-  image String
+  image String?
   commentaries Commentaries[]
+  community Communities? @relation(fields: [communityId], references: [id])
+  communityId String?
 }
 
 model Commentaries {
@@ -40,6 +43,8 @@ model Commentaries {
   user    Users  @relation(fields: [userId], references: [id])
   userId  String    @unique
   content String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Communities {
@@ -48,6 +53,15 @@ model Communities {
   name      String   @unique
   owner     Users    @relation(fields: [ownerId], references: [id])
   ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts Posts[]
+}
+
+model Likes {
+  id String @id @default(uuid())
+  author Users @relation(fields: [authorId], references: [id])
+  authorId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
