@@ -33,15 +33,17 @@ model Posts {
   authorId     String
   image String?
   commentaries Commentaries[]
+  likes Likes[]
   community Communities? @relation(fields: [communityId], references: [id])
   communityId String?
 }
 
 model Commentaries {
+  id        String      @id @default(uuid())
   post    Posts  @relation(fields: [postId], references: [id])
-  postId  String    @unique
+  postId  String    
   user    Users  @relation(fields: [userId], references: [id])
-  userId  String    @unique
+  userId  String  
   content String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,6 +64,8 @@ model Likes {
   id String @id @default(uuid())
   author Users @relation(fields: [authorId], references: [id])
   authorId String
+  post Posts @relation(fields: [postId], references: [id])
+  postId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
