@@ -1,11 +1,9 @@
-import { UserEntity } from "../../user/entities/UserEntity";
-
 export interface PostEntity {
-    id: string,   
-    createdAt: Date,        
+    id: string,
+    createdAt: Date,
     updatedAt: Date,
-    title: string,
-    imageUrl: string
-    content?: string,
-    author: UserEntity
+    authorId: string,
+    caption?: string,
+    location?: string,
+    tags?: string,
 }

@@ -36,6 +36,9 @@ export class PostController {
           location,
           tags,
         },
+        include: {
+          author: true
+        }
       });
 
       res.status(201).json({ message: "Post created", newPost});
@@ -89,16 +92,93 @@ export class PostController {
   }
 
   async getAll(req: Request, res: Response) {
-    const allPosts = await prisma.posts.findMany()
+    const posts = await prisma.posts.findMany({
+      include: {
+        author: true,
+        likes: true,
+        commentaries: true
+      }
+    })
 
-    if(!allPosts) {
+    if(!posts) {
       return res.json({ message: "Something went wrong while getting posts."})
     }
 
-    return res.json({
-      posts: {
-        ...allPosts
+    return res.send(posts)
+  }
+
+  async getPostById(req: Request, res: Response) {
+    const { postId } = req.body;
+    console.log(postId);
+
+    const post = await prisma.posts.findUnique({
+      where: {
+        id: postId
+      },
+      include: {
+        likes: {
+          include: {
+            author: true
+          }
+        },
+        commentaries: {
+          include: {
+            user: true
+          }
+        },
       }
     })
+
+    if(!post) {
+      return res.status(404).json({ message: "Post was not found." });
+    }
+
+    res.send(post)
+  }
+
+  async likePost(req: Request, res: Response) {
+    const { authorId, postId } = req.body;
+
+    const post = await prisma.posts.findUnique({
+      where: {
+        id: postId
+      }
+    })
+
+    if(!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    const verifyLikePost = await prisma.likes.findUnique({
+      where: {
+        id: post.id,
+        postId,
+        authorId,
+      }
+    });
+
+    if(verifyLikePost) {
+      await prisma.likes.delete({
+        where: {
+          id: verifyLikePost.id,
+          postId: post.id,
+          authorId,
+        }
+      });
+      return res.status(201).json({ message: "Post has been unliked." });
+    }
+
+    const like = await prisma.likes.create({
+      data: {
+        postId,
+        authorId,
+      },
+      include: {
+        author: true,
+        post: true
+      }
+    })
+
+    return res.status(201).json(like)
   }
 };
