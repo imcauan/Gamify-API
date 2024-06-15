@@ -2,11 +2,11 @@ import { CommunityEntity } from "../../community/entities/CommunityEntity";
 import { PostEntity } from "../../posts/entities/PostEntity";
 
 export interface UserEntity {
-    id: number,
+    id: string,
     email: string,
-    username: string,
+    username: string, 
     bio: string | null,
     avatarUrl: string | null,
     posts?: PostEntity[],
-    communities?: CommunityEntity[]
+    communities?: CommunityEntity[] 
 }

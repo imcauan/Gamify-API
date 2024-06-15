@@ -1,4 +1,4 @@
-import { UserEntity } from "../../user/entities/UserEntity";
+import { UserEntity } from "../../auth/entites/UserEntity";
 
 export interface CommunityEntity {
     id: string,
