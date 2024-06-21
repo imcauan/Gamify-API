@@ -20,7 +20,6 @@ model Users {
   commentaries Commentaries[]
   saves Saves[]
   messages Messages[]
-  
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -71,12 +70,20 @@ model Communities {
   posts Posts[]
 }
 
+model Chats {
+  id String @id @default(uuid())
+  members String[] 
+  messages Messages[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 model Messages {
   id String @id @default(uuid())
+  chat Chats @relation(fields: [chatId], references: [id])
+  chatId String
   content String
   author Users @relation(fields: [authorId], references: [id])
   authorId String
-  destination String
 }
 
 model Likes {
